@@ -7,14 +7,24 @@ It runs fully offline. htmx and fonts are bundled, so nothing loads from a CDN a
 ## Run it
 
 ```bash
-# edit ADMIN_PASSWORD and PUBLIC_HOST in docker-compose.yml first
+cp .env.example .env      # then fill in ADMIN_PASSWORD, PUBLIC_HOST and DATA_PATH
 docker compose up -d --build
 ```
+
+All settings live in `.env`. `docker-compose.yml` only reads from it.
+
+### Dockhand
+
+1. Build the image once on the Docker host, from this folder: `docker build -t lanparty-manager:latest .` A stack created in Dockhand's UI doesn't have the source code next to it, so it can't build the image itself.
+2. In Dockhand, create a stack, paste in `docker-compose.yml`, and delete the `build: .` line.
+3. Paste the contents of `.env.example` into the stack's environment variables and fill them in. Use an absolute `DATA_PATH`, because Dockhand runs stacks from its own data folder.
+4. Deploy. To update later, rebuild the image with the same tag and redeploy the stack.
 
 Open `http://<host>:1337` and sign in with `ADMIN_PASSWORD`. Everything lives in `./data/lanparty.db`, so to move between the homelab and a venue box, copy the `data` folder.
 
 | Variable | Purpose |
 |---|---|
+| `DATA_PATH` | Host folder for the database and custom templates. Use an absolute path. |
 | `PORT` | Web UI port. Defaults to `1337`. Set `PORT=` in a `.env` file to change it without editing the compose file. |
 | `ADMIN_PASSWORD` | Organizer sign-in. |
 | `PUBLIC_HOST` | LAN IP players type into games to reach hosted servers. |

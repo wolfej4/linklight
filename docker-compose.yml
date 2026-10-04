@@ -1,22 +1,20 @@
 services:
   lanparty:
     build: .
-    image: lanparty-manager:latest
-    container_name: lanparty
+    image: ${IMAGE:-lanparty-manager:latest}
+    container_name: ${CONTAINER_NAME:-lanparty}
     restart: unless-stopped
     ports:
       - "${PORT:-1337}:${PORT:-1337}"
     environment:
-      # Web UI port. To change it, put PORT=<number> in a .env file next to this compose file.
       PORT: ${PORT:-1337}
-      ADMIN_PASSWORD: change-me
-      # LAN IP of this machine. Shown to players as the game server address.
-      PUBLIC_HOST: 192.168.1.50
-      # Optional. Set when behind a reverse proxy so QR codes use the right address.
-      BASE_URL: ""
-      DEFAULT_WATTS: "450"
-      TZ: America/Chicago
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in your .env}
+      PUBLIC_HOST: ${PUBLIC_HOST:-}
+      BASE_URL: ${BASE_URL:-}
+      DEFAULT_WATTS: ${DEFAULT_WATTS:-450}
+      SECRET_KEY: ${SECRET_KEY:-}
+      TZ: ${TZ:-America/Chicago}
     volumes:
-      - ./data:/data
+      - ${DATA_PATH:-./data}:/data
       # Lets the app start and stop game server containers. Remove to disable that module.
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
