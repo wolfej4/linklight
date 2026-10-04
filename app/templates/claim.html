@@ -1,0 +1,17 @@
+{% extends "site.html" %}
+{% block title %}Claim your ticket{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="panel">
+  <p class="eyebrow">You've got a ticket</p>
+  <h1>{{ ev.name }}</h1>
+  <p class="muted">{{ ev|when or "Date to be announced" }}{% if ev.venue %} · {{ ev.venue }}{% endif %}</p>
+  <p>{{ tt.name if tt else "Ticket" }}</p>
+  {% if user %}
+  <form method="post" action="/claim/{{ token }}"><button class="btn">Claim ticket as {{ user.display }}</button></form>
+  {% else %}
+  <a class="btn" href="/login?next=/claim/{{ token }}">Sign in to claim it</a>
+  <p class="hint">Use Steam, Discord, Google, Apple or your email. It takes a few seconds.</p>
+  {% endif %}
+</div>
+{% endblock %}

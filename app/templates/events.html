@@ -1,0 +1,16 @@
+{% extends "site.html" %}
+{% from "_cards.html" import event_card %}
+{% block title %}Events: {{ site_name }}{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>Events</h1></div>
+<section class="split">
+  <div>
+    <h2>Upcoming</h2>
+    {% for e in upcoming %}{{ event_card(e) }}{% else %}<p class="empty">Nothing on the calendar yet.</p>{% endfor %}
+  </div>
+  <div>
+    <h2>Past</h2>
+    {% for e in past %}{{ event_card(e) }}{% else %}<p class="empty">No past events yet.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}

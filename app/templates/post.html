@@ -1,0 +1,12 @@
+{% extends "site.html" %}
+{% block title %}{{ post.title }}: {{ site_name }}{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+{% if not post.published %}<p class="alert warn">Draft. Only organizers can see this.</p>{% endif %}
+<article>
+  <h1>{{ post.title }}</h1>
+  <p class="muted">{{ (post.published_at or post.created_at).strftime("%B %-d, %Y") }}{% if ev %} · <a href="/events/{{ ev.id }}">{{ ev.name }}</a>{% endif %}</p>
+  <div class="prose">{{ post.body|paras }}</div>
+</article>
+<p class="gap"><a href="/news">All news</a></p>
+{% endblock %}

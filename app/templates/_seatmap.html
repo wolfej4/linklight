@@ -8,7 +8,7 @@
     <div class="meter {{ 'hot' if l.pct >= 90 else 'warm' if l.pct >= 75 else '' }}" role="meter" aria-valuenow="{{ l.pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ l.c.name }} load">
       <span style="width: {{ [l.pct, 100]|min }}%"></span>
     </div>
-    <form method="post" action="/seating/circuits/{{ l.c.id }}/delete" onsubmit="return confirm('Remove circuit {{ l.c.name }}?')"><button class="linkbtn">Remove</button></form>
+    <form method="post" action="/seating/circuits/{{ l.c.id }}/delete" data-confirm="Remove circuit {{ l.c.name }}?"><button class="linkbtn">Remove</button></form>
   </div>
   {% endfor %}
 </section>
@@ -30,7 +30,7 @@
         <select name="circuit_id" aria-label="Circuit"><option value="0">No circuit</option>{% for c in circuits %}<option value="{{ c.id }}" {% if c.id == t.circuit_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
         <button class="btn tiny">Save</button>
       </form>
-      <form method="post" action="/seating/tables/{{ t.id }}/delete" onsubmit="return confirm('Remove {{ t.name }}? Anyone seated there loses their seat.')"><button class="btn tiny danger">Remove table</button></form>
+      <form method="post" action="/seating/tables/{{ t.id }}/delete" data-confirm="Remove {{ t.name }}? Anyone seated there loses their seat."><button class="btn tiny danger">Remove table</button></form>
     </details>
   </header>
   <div class="ports">

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Tickets</h1>
+  <p class="sub">Sales for {{ event.name }}. Buyers become attendees automatically once they've paid.</p>
+  <div class="actions"><a class="btn ghost" href="/events/{{ event.id }}#tickets">See the public page</a></div>
+</div>
+
+{% if not providers %}
+<p class="alert warn">No payment provider is set up, so only free tickets can be sold. Add Stripe or PayPal keys to <code>.env</code> and restart.</p>
+{% endif %}
+{% if not event.published %}
+<p class="alert warn">This event is a draft, so nobody can buy tickets yet. Publish it from the <a href="/admin">overview</a>.</p>
+{% endif %}
+
+<section class="split">
+  <div class="panel">
+    <h2>Ticket types</h2>
+    {% for t in types %}
+    <details class="ttedit">
+      <summary>
+        <span><b>{{ t.name }}</b> {{ t.price_cents|money }}{% if not t.on_sale %} <em class="tag">off sale</em>{% endif %}</span>
+        <span class="muted">{{ sold[t.id] }} sold{% if t.quantity %} of {{ t.quantity }}, {{ left[t.id] }} left{% endif %}</span>
+      </summary>
+      <form method="post" action="/admin/tickets/{{ t.id }}">
+        <div class="row2">
+          <label>Name<input name="name" value="{{ t.name }}" required></label>
+          <label>Price ({{ currency }})<input name="price" value="{{ '%.2f'|format(t.price_cents / 100) }}" inputmode="decimal"></label>
+        </div>
+        <label>Description<input name="description" value="{{ t.description }}"></label>
+        <div class="row2">
+          <label>How many (0 = no limit)<input name="quantity" type="number" min="0" value="{{ t.quantity }}"></label>
+          <label>Most per order<input name="max_per_order" type="number" min="1" max="20" value="{{ t.max_per_order }}"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="on_sale" value="1" {% if t.on_sale %}checked{% endif %}> On sale</label>
+        <div class="inline">
+          <button class="btn">Save</button>
+        </div>
+      </form>
+      <form method="post" action="/admin/tickets/{{ t.id }}/delete" data-confirm="Delete {{ t.name }}?"><button class="linkbtn">Delete ticket type</button></form>
+    </details>
+    {% else %}
+    <p class="empty">No ticket types yet. Add one to start selling.</p>
+    {% endfor %}
+  </div>
+
+  <form class="panel" method="post" action="/admin/tickets">
+    <h2>Add a ticket type</h2>
+    <div class="row2">
+      <label>Name<input name="name" required placeholder="BYOC seat"></label>
+      <label>Price ({{ currency }})<input name="price" value="0" inputmode="decimal" placeholder="25.00"></label>
+    </div>
+    <label>Description<input name="description" placeholder="Bring your own computer. Includes pizza."></label>
+    <div class="row2">
+      <label>How many (0 = no limit)<input name="quantity" type="number" min="0" value="0"></label>
+      <label>Most per order<input name="max_per_order" type="number" min="1" max="20" value="4"></label>
+    </div>
+    <p class="hint">Match the count to your seats. Unpaid checkouts hold their tickets for 30 minutes.</p>
+    <button class="btn">Add ticket type</button>
+  </form>
+</section>
+
+<div class="ctop">
+  <h2>Orders</h2>
+  <form method="get" class="inline-form">
+    <select name="status" aria-label="Filter orders" onchange="this.form.submit()">
+      {% for k, label in [("", "All orders"), ("paid", "Paid"), ("pending", "Waiting on payment"), ("refunded", "Refunded"), ("cancelled", "Cancelled"), ("expired", "Timed out")] %}
+      <option value="{{ k }}" {% if k == status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+<div class="scroll">
+<table class="grid">
+  <thead><tr><th>Order</th><th>Buyer</th><th class="num">Tickets</th><th class="num">Total</th><th>Paid with</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for r in orders %}
+  <tr>
+    <td><a href="/orders/{{ r.o.id }}">#{{ r.o.id }}</a><div class="muted small">{{ r.o.created_at.strftime("%b %-d, %-I:%M %p") }}</div></td>
+    <td>{{ r.buyer.display if r.buyer else "Deleted user" }}{% if r.buyer and r.buyer.email %}<div class="muted small">{{ r.buyer.email }}</div>{% endif %}</td>
+    <td class="num">{{ r.count }}<div class="muted small">{{ r.assigned }} claimed</div></td>
+    <td class="num">{{ r.o.total_cents|money(r.o.currency) }}</td>
+    <td>{{ {"stripe": "Stripe", "paypal": "PayPal", "free": "Free"}.get(r.o.provider, "") }}</td>
+    <td><em class="tag {{ 'on' if r.o.status == 'paid' else 'warn' if r.o.status == 'pending' else '' }}">{{ r.o.status|capitalize }}</em></td>
+    <td><div class="rowactions">
+      {% if r.o.status == "paid" %}
+        {% if r.o.total_cents and r.o.provider in ("stripe", "paypal") %}
+        <form method="post" action="/admin/orders/{{ r.o.id }}/refund" data-confirm="Refund {{ r.o.total_cents|money(r.o.currency) }} through {{ 'Stripe' if r.o.provider == 'stripe' else 'PayPal' }} and cancel these tickets?"><button class="btn tiny danger">Refund</button></form>
+        {% endif %}
+        <form method="post" action="/admin/orders/{{ r.o.id }}/cancel" data-confirm="Cancel these tickets without refunding? Use this if you've already refunded by hand."><button class="linkbtn">Cancel only</button></form>
+      {% elif r.o.status == "pending" %}
+        <form method="post" action="/admin/orders/{{ r.o.id }}/cancel"><button class="linkbtn">Cancel</button></form>
+      {% endif %}
+    </div></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="empty">No orders yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

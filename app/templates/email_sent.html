@@ -1,0 +1,10 @@
+{% extends "site.html" %}
+{% block title %}Check your email{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="panel">
+  <h1>Check your email</h1>
+  <p>We sent a sign-in link to <strong>{{ email }}</strong>. It works once and expires in 15 minutes.</p>
+  <p class="muted">Nothing there? Check your spam folder, or <a href="/login">try again</a>.</p>
+</div>
+{% endblock %}

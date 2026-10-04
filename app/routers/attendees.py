@@ -9,7 +9,8 @@ from sqlmodel import Session, col, or_, select
 from ..auth import require_admin
 from ..config import DEFAULT_WATTS
 from ..db import active_event, get_session
-from ..models import Attendee, Entrant, LanTable, Tournament
+from .. import tickets
+from ..models import Attendee, LanTable, Ticket
 from ..qr import qr_svg
 from ..web import back, base_url, render
 
@@ -177,11 +178,9 @@ def update(
 def delete(aid: int, s: Session = Depends(get_session)):
     a = s.get(Attendee, aid)
     if a:
-        setup_ids = [t.id for t in s.exec(select(Tournament).where(Tournament.status == "setup")).all()]
-        for e in s.exec(select(Entrant).where(Entrant.attendee_id == aid)).all():
-            if e.tournament_id in setup_ids:
-                s.delete(e)
-        s.delete(a)
+        if s.exec(select(Ticket).where(Ticket.attendee_id == aid, Ticket.status == "active")).first():
+            return back(f"/attendees/{aid}", "This person has a ticket. Refund or cancel their order under Tickets instead.")
+        tickets.remove_attendee(s, a)
         s.commit()
     return back("/attendees")
 

@@ -1,0 +1,16 @@
+{% extends "site.html" %}
+{% block title %}Sign in{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="panel">
+  {% if code %}
+  <h1>{{ "Confirm your email" if code.purpose == "verify" else "Sign in" }}</h1>
+  <p>{{ "Add" if code.purpose == "verify" else "Continue as" }} <strong>{{ code.email }}</strong>{{ " to your account" if code.purpose == "verify" }}.</p>
+  <form method="post" action="/login/email/{{ token }}"><button class="btn">{{ "Confirm email" if code.purpose == "verify" else "Sign in" }}</button></form>
+  {% else %}
+  <h1>That link has expired</h1>
+  <p>Sign-in links work once and only for 15 minutes.</p>
+  <a class="btn" href="/login">Get a new link</a>
+  {% endif %}
+</div>
+{% endblock %}

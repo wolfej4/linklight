@@ -22,9 +22,9 @@ def generate(s: Session, t: Tournament):
     entrants = s.exec(
         select(Entrant).where(Entrant.tournament_id == t.id).order_by(Entrant.seed, Entrant.id)
     ).all()
-    ids = [e.attendee_id for e in entrants]
+    ids = [e.team_id if t.teams else e.attendee_id for e in entrants]
     if len(ids) < 2:
-        raise ValueError("Add at least two players before starting.")
+        raise ValueError("Add at least two teams before starting." if t.teams else "Add at least two players before starting.")
     s.exec(delete(Match).where(Match.tournament_id == t.id))
     if t.fmt == "roundrobin":
         _round_robin(s, t, ids)
@@ -98,7 +98,7 @@ def report(s: Session, t: Tournament, m: Match, s1: int, s2: int):
     if t.status == "setup":
         raise ValueError("This tournament hasn't started yet.")
     if m.p1 is None or m.p2 is None:
-        raise ValueError("Both players need to be decided before reporting a score.")
+        raise ValueError("Both sides need to be decided before reporting a score.")
     if s1 < 0 or s2 < 0:
         raise ValueError("Scores can't be negative.")
     if t.fmt == "single" and s1 == s2:

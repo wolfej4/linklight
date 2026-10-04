@@ -27,12 +27,13 @@
 {% for x in matches %}
 <div class="panel pmatch">
   <div class="ctop"><strong>{{ x.t.name }}</strong><a href="/t/{{ x.t.id }}">Bracket</a></div>
-  {% set opp = x.b if x.m.p1 == a.id else x.a %}
+  {% set opp = x.b if x.m.p1 == x.me else x.a %}
+  {% if x.t.teams %}<p class="muted small">Playing for {{ (x.a if x.m.p1 == x.me else x.b).display }}</p>{% endif %}
   {% if not x.ready %}
   <p class="muted">Waiting to find out who you play.</p>
   {% elif x.m.done %}
-  {% set mine = x.m.s1 if x.m.p1 == a.id else x.m.s2 %}{% set theirs = x.m.s2 if x.m.p1 == a.id else x.m.s1 %}
-  <p>vs {{ opp.display if opp else "?" }}: {{ mine }} to {{ theirs }}, {{ "you won" if x.m.winner == a.id else "draw" if not x.m.winner else "you lost" }}.</p>
+  {% set mine = x.m.s1 if x.m.p1 == x.me else x.m.s2 %}{% set theirs = x.m.s2 if x.m.p1 == x.me else x.m.s1 %}
+  <p>vs {{ opp.display if opp else "?" }}: {{ mine }} to {{ theirs }}, {{ "you won" if x.m.winner == x.me else "draw" if not x.m.winner else "you lost" }}.</p>
   {% else %}
   <form method="post" action="/p/{{ a.token }}/report/{{ x.m.id }}" class="score big">
     <span>vs <b>{{ opp.display if opp else "?" }}</b></span>
