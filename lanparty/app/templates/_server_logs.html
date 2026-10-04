@@ -1,0 +1,6 @@
+<div class="panel">
+  <div class="ctop"><h2>Logs: {{ g.name if g else "" }}</h2>
+    <span class="inline"><button class="linkbtn" hx-get="/servers/{{ g.id }}/logs" hx-target="#logs">Refresh</button>
+    <button class="linkbtn" onclick="document.getElementById('logs').innerHTML=''">Close</button></span></div>
+  <pre class="logs">{{ text }}</pre>
+</div>

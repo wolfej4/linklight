@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Badges: {{ event.name }}</title>
+<link rel="stylesheet" href="/static/app.css"></head>
+<body class="print">
+<p class="noprint hint">Print this page, cut out the cards, and hand them out at the door. Scanning a card opens that player's page, where signed-in organizers can check them in.</p>
+<div class="badges">
+{% for a, qr in cards %}
+  <div class="badge">
+    <div class="qr">{{ qr|safe }}</div>
+    <div>
+      <strong>{{ a.handle or a.name }}</strong>
+      {% if a.handle %}<div>{{ a.name }}</div>{% endif %}
+      <div class="seat">{% if a.table_id %}{{ tables.get(a.table_id) }}, seat {{ a.seat_no }}{% else %}Seat assigned at the door{% endif %}</div>
+      <div class="ev">{{ event.name }}</div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+</body></html>

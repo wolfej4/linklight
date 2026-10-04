@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Game servers</h1>
+  <p class="sub">Players connect to {{ host }} plus the port shown.</p>
+</div>
+
+{% if not docker_ok %}
+<div class="panel">
+  <h2>Docker isn't reachable</h2>
+  <p>Server control needs the Docker socket. Add <code>/var/run/docker.sock:/var/run/docker.sock</code> to this container's volumes and restart it.</p>
+  <p class="muted">Details: {{ docker_err }}</p>
+</div>
+{% else %}
+<section class="split">
+  <form class="panel" method="post" action="/servers">
+    <h2>Launch a server</h2>
+    <div class="row2">
+      <label>Game<select name="template" required>{% for k, tpl in templates_.items() %}<option value="{{ k }}">{{ tpl.label }}</option>{% endfor %}</select></label>
+      <label>Name<input name="name" placeholder="Saturday survival" required></label>
+    </div>
+    <label>Host port<input name="host_port" type="number" min="1" max="65535" placeholder="Leave blank for the game's default"></label>
+    <button class="btn">Launch server</button>
+  </form>
+  <div class="panel">
+    <h2>Before you go</h2>
+    <ul class="notes">
+      {% for k, tpl in templates_.items() if tpl.note %}<li><b>{{ tpl.label }}.</b> {{ tpl.note }}</li>{% endfor %}
+      <li>Images download the first time you launch each game. Launch everything once at home so nothing downloads over venue Wi-Fi.</li>
+      <li>World data lives in Docker volumes named <code>lanparty_…</code> and survives removing a server here.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="scroll">
+<table class="grid">
+  <thead><tr><th>Server</th><th>Game</th><th>Status</th><th>Connect to</th><th></th></tr></thead>
+  <tbody id="srows" hx-get="/servers/rows" hx-trigger="every 5s">{% include "_server_rows.html" %}</tbody>
+</table>
+</div>
+<div id="logs"></div>
+{% endif %}
+{% endblock %}

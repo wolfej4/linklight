@@ -1,0 +1,30 @@
+<header class="tvhead">
+  <h1>{{ event.name }}</h1>
+  <div class="tvmeta"><span class="clock">{{ now.strftime("%-I:%M") }}</span><span>{{ here }} of {{ total }} here</span></div>
+</header>
+{% if event.announcement %}<p class="announce">{{ event.announcement }}</p>{% endif %}
+<div class="tvgrid">
+  <section>
+    <h2>Up next</h2>
+    {% for x in matches %}
+    <div class="tvmatch">
+      <span class="tname">{{ x.t.name }}</span>
+      <span class="vs"><b>{{ x.a.display if x.a else "?" }}</b> vs <b>{{ x.b.display if x.b else "?" }}</b></span>
+    </div>
+    {% else %}
+    <p class="quiet">{% if live %}Waiting on results.{% else %}No matches running. Free play.{% endif %}</p>
+    {% endfor %}
+    {% for w in winners %}
+    <div class="tvwin"><span>{{ w.t.name }} winner</span><strong>{{ w.who.display }}</strong></div>
+    {% endfor %}
+  </section>
+  <section>
+    <h2>Join a server</h2>
+    {% for x in servers %}
+    <div class="tvserver"><span>{{ x.g.name }}<small>{{ x.label }}</small></span><b>{{ host }}:{{ x.g.host_port }}</b></div>
+    {% else %}
+    <p class="quiet">No servers running.</p>
+    {% endfor %}
+  </section>
+</div>
+<footer class="tvfoot">Scan the code on your badge to see your seat and report match scores.</footer>

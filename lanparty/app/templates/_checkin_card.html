@@ -1,0 +1,14 @@
+<div class="checkcard {{ 'here' if a.checked_in_at }}" id="c{{ a.id }}">
+  <div>
+    <strong>{{ a.name }}</strong>{% if a.handle %} <span class="muted">{{ a.handle }}</span>{% endif %}
+    <div class="muted">
+      {% if a.table_id %}{{ tables.get(a.table_id) }}, seat {{ a.seat_no }}{% else %}No seat yet{% endif %}
+      {% if not a.paid %}<span class="tag warn">Owes entry</span>{% endif %}
+    </div>
+  </div>
+  {% if a.checked_in_at %}
+  <span class="tag on">Arrived {{ a.checked_in_at|dt }}</span>
+  {% else %}
+  <button class="btn" hx-post="/checkin/{{ a.id }}" hx-target="#c{{ a.id }}" hx-swap="outerHTML">Check in</button>
+  {% endif %}
+</div>

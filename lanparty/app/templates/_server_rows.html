@@ -1,0 +1,20 @@
+{% for r in rows %}
+<tr>
+  <td><strong>{{ r.g.name }}</strong><div class="muted">{{ r.g.container_name }}</div></td>
+  <td>{{ r.label }}</td>
+  <td><span class="tag {{ 'on' if r.state == 'running' else 'warn' if r.state in ('starting','restarting','created') else 'bad' if r.state in ('error','missing','dead') else '' }}">{{ {"running":"Running","starting":"Starting","exited":"Stopped","created":"Created","restarting":"Restarting","error":"Failed","missing":"Missing","paused":"Paused"}.get(r.state, r.state|capitalize) }}</span>
+    {% if r.detail %}<div class="muted small">{{ r.detail }}</div>{% endif %}</td>
+  <td class="num">{{ host }}:{{ r.ports|join(", ") }}</td>
+  <td class="rowactions">
+    {% if r.state in ("exited", "created") %}<form method="post" action="/servers/{{ r.g.id }}/start"><button class="btn tiny">Start</button></form>{% endif %}
+    {% if r.state == "running" %}
+      <form method="post" action="/servers/{{ r.g.id }}/restart"><button class="btn tiny ghost">Restart</button></form>
+      <form method="post" action="/servers/{{ r.g.id }}/stop"><button class="btn tiny ghost">Stop</button></form>
+    {% endif %}
+    <button class="btn tiny ghost" hx-get="/servers/{{ r.g.id }}/logs" hx-target="#logs">Logs</button>
+    <form method="post" action="/servers/{{ r.g.id }}/delete" onsubmit="return confirm('Remove {{ r.g.name }}? Its world data is kept.')"><button class="btn tiny danger">Remove</button></form>
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="5" class="empty">No servers yet. Launch one above.</td></tr>
+{% endfor %}
