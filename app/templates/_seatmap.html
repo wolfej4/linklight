@@ -1,0 +1,53 @@
+<div id="seatmap">
+{% if notice %}<p class="alert warn">{{ notice }}</p>{% endif %}
+{% if loads %}
+<section class="circuits">
+  {% for l in loads %}
+  <div class="circuit">
+    <div class="ctop"><strong>{{ l.c.name }}</strong><span class="muted">{{ l.draw }} of {{ l.cap }} W</span></div>
+    <div class="meter {{ 'hot' if l.pct >= 90 else 'warm' if l.pct >= 75 else '' }}" role="meter" aria-valuenow="{{ l.pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ l.c.name }} load">
+      <span style="width: {{ [l.pct, 100]|min }}%"></span>
+    </div>
+    <form method="post" action="/seating/circuits/{{ l.c.id }}/delete" onsubmit="return confirm('Remove circuit {{ l.c.name }}?')"><button class="linkbtn">Remove</button></form>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% for t in tables %}
+{% set ns = namespace(filled=0) %}
+{% for n in range(1, t.seats + 1) %}{% if seatmap.get((t.id, n)) %}{% set ns.filled = ns.filled + 1 %}{% endif %}{% endfor %}
+<article class="switch">
+  <header>
+    <h3>{{ t.name }}</h3>
+    <span class="muted">{{ circuit_names.get(t.circuit_id, "No circuit") }}</span>
+    <span class="count">{{ ns.filled }}/{{ t.seats }}</span>
+    <details class="tedit">
+      <summary>Edit</summary>
+      <form method="post" action="/seating/tables/{{ t.id }}" class="inline-form">
+        <input name="name" value="{{ t.name }}" aria-label="Table name">
+        <input name="seats" type="number" min="1" max="48" value="{{ t.seats }}" aria-label="Seats">
+        <select name="circuit_id" aria-label="Circuit"><option value="0">No circuit</option>{% for c in circuits %}<option value="{{ c.id }}" {% if c.id == t.circuit_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
+        <button class="btn tiny">Save</button>
+      </form>
+      <form method="post" action="/seating/tables/{{ t.id }}/delete" onsubmit="return confirm('Remove {{ t.name }}? Anyone seated there loses their seat.')"><button class="btn tiny danger">Remove table</button></form>
+    </details>
+  </header>
+  <div class="ports">
+    {% for n in range(1, t.seats + 1) %}
+    {% set a = seatmap.get((t.id, n)) %}
+    <button class="port{% if a %} taken{% endif %}{% if a and a.checked_in_at %} here{% endif %}"
+            hx-get="/seating/seat/{{ t.id }}/{{ n }}" hx-target="#seat-panel"
+            title="Seat {{ n }}: {{ a.name ~ (' (arrived)' if a.checked_in_at else ' (not here yet)') if a else 'open' }}">
+      <span class="leds"><i></i><i></i></span>
+      <span class="jack"></span>
+      <span class="pnum">{{ n }}</span>
+      <span class="who">{{ a.display if a else "Open" }}</span>
+    </button>
+    {% endfor %}
+  </div>
+</article>
+{% else %}
+<p class="empty">No tables yet. Add a circuit for each breaker you'll use, then add tables above.</p>
+{% endfor %}
+</div>

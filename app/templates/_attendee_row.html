@@ -1,0 +1,9 @@
+<tr id="a{{ a.id }}">
+  <td><strong>{{ a.name }}</strong>{% if a.handle %}<div class="muted">{{ a.handle }}</div>{% endif %}</td>
+  <td>{% if a.table_id %}{{ tables.get(a.table_id, "?") }}, seat {{ a.seat_no }}{% else %}<span class="muted">None</span>{% endif %}</td>
+  <td>{{ a.gear }}</td>
+  <td class="num">{{ a.watts }}</td>
+  <td><button class="pill {{ 'on' if a.paid else 'off' }}" hx-post="/attendees/{{ a.id }}/paid" hx-target="#a{{ a.id }}" hx-swap="outerHTML">{{ "Paid" if a.paid else "Unpaid" }}</button></td>
+  <td><button class="pill {{ 'on' if a.checked_in_at else 'off' }}" hx-post="/attendees/{{ a.id }}/checkin" hx-target="#a{{ a.id }}" hx-swap="outerHTML">{{ a.checked_in_at|dt if a.checked_in_at else "Not yet" }}</button></td>
+  <td class="rowactions"><a href="/p/{{ a.token }}" target="_blank">Player page</a><a href="/attendees/{{ a.id }}">Edit</a></td>
+</tr>

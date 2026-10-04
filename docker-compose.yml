@@ -1,0 +1,20 @@
+services:
+  lanparty:
+    build: .
+    image: lanparty-manager:latest
+    container_name: lanparty
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMIN_PASSWORD: change-me
+      # LAN IP of this machine. Shown to players as the game server address.
+      PUBLIC_HOST: 192.168.1.50
+      # Optional. Set when behind a reverse proxy so QR codes use the right address.
+      BASE_URL: ""
+      DEFAULT_WATTS: "450"
+      TZ: America/Chicago
+    volumes:
+      - ./data:/data
+      # Lets the app start and stop game server containers. Remove to disable that module.
+      - /var/run/docker.sock:/var/run/docker.sock

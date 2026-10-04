@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ a.display }}: {{ event.name }}{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>{{ a.display }}</h1>
+  <p class="sub">{% if a.handle %}{{ a.name }}, {% endif %}{{ event.name }}</p>
+</div>
+
+<section class="seatcard">
+  {% if table %}
+  <div><span class="muted">Your seat</span><strong>{{ table.name }}, seat {{ a.seat_no }}</strong>{% if circuit %}<span class="muted">Plug into {{ circuit.name }}</span>{% endif %}</div>
+  {% else %}
+  <div><span class="muted">Your seat</span><strong>Assigned at the door</strong></div>
+  {% endif %}
+  {% if a.checked_in_at %}
+  <span class="tag on">Checked in {{ a.checked_in_at|dt }}</span>
+  {% elif is_admin %}
+  <form method="post" action="/p/{{ a.token }}/checkin"><button class="btn">Check in {{ a.name.split(" ")[0] }}</button></form>
+  {% else %}
+  <span class="tag warn">Not checked in</span>
+  {% endif %}
+</section>
+{% if is_admin and not a.paid %}<p class="alert warn">{{ a.name }} hasn't paid yet.</p>{% endif %}
+
+<h2>Your matches</h2>
+{% for x in matches %}
+<div class="panel pmatch">
+  <div class="ctop"><strong>{{ x.t.name }}</strong><a href="/t/{{ x.t.id }}">Bracket</a></div>
+  {% set opp = x.b if x.m.p1 == a.id else x.a %}
+  {% if not x.ready %}
+  <p class="muted">Waiting to find out who you play.</p>
+  {% elif x.m.done %}
+  {% set mine = x.m.s1 if x.m.p1 == a.id else x.m.s2 %}{% set theirs = x.m.s2 if x.m.p1 == a.id else x.m.s1 %}
+  <p>vs {{ opp.display if opp else "?" }}: {{ mine }} to {{ theirs }}, {{ "you won" if x.m.winner == a.id else "draw" if not x.m.winner else "you lost" }}.</p>
+  {% else %}
+  <form method="post" action="/p/{{ a.token }}/report/{{ x.m.id }}" class="score big">
+    <span>vs <b>{{ opp.display if opp else "?" }}</b></span>
+    <label>You<input name="mine" type="number" min="0" required inputmode="numeric"></label>
+    <label>Them<input name="theirs" type="number" min="0" required inputmode="numeric"></label>
+    <button class="btn">Report score</button>
+  </form>
+  {% endif %}
+</div>
+{% else %}
+<p class="empty">You're not in any running tournaments yet.</p>
+{% endfor %}
+
+<section class="myqr">
+  <div class="qr">{{ qr|safe }}</div>
+  <p class="muted">Show this at the door, or bookmark this page to get back to it.</p>
+</section>
+{% endblock %}

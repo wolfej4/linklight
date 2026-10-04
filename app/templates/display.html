@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block bodyclass %}tv{% endblock %}
+{% block mainclass %}tvwrap{% endblock %}
+{% block content %}
+<div id="tv" hx-get="/display/body" hx-trigger="every 10s">{% include "_display_body.html" %}</div>
+{% endblock %}

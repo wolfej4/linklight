@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Seating and power</h1>
+  <p class="sub">Click a port to seat someone. Left light: seat taken. Right light: player has arrived.</p>
+  <div class="actions">
+    <button class="btn ghost" hx-post="/seating/autoseat" hx-vals='{"only_here":"1"}' hx-target="#seatmap" hx-swap="outerHTML">Seat everyone who's arrived</button>
+    <button class="btn ghost" hx-post="/seating/autoseat" hx-target="#seatmap" hx-swap="outerHTML">Seat everyone</button>
+  </div>
+</div>
+
+<section class="split">
+  <form class="panel" method="post" action="/seating/circuits">
+    <h2>Add a power circuit</h2>
+    <p class="hint">One entry per breaker. Loads are checked against 80% of its rating.</p>
+    <div class="row3">
+      <label>Name<input name="name" placeholder="Garage east wall" required></label>
+      <label>Amps<input name="amps" type="number" value="15" min="1"></label>
+      <label>Volts<input name="volts" type="number" value="120" min="1"></label>
+    </div>
+    <button class="btn ghost">Add circuit</button>
+  </form>
+  <form class="panel" method="post" action="/seating/tables">
+    <h2>Add tables</h2>
+    <div class="row3">
+      <label>How many<input name="count" type="number" value="1" min="1" max="200"></label>
+      <label>Seats each<input name="seats" type="number" value="4" min="1" max="48"></label>
+      <label>Circuit<select name="circuit_id"><option value="0">None yet</option>{% for c in circuits %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
+    </div>
+    <label>Name<input name="name" value="Table"></label>
+    <button class="btn ghost">Add tables</button>
+  </form>
+</section>
+
+<div id="seat-panel"></div>
+{% include "_seatmap.html" %}
+{% endblock %}

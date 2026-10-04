@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ event.name if event else "LAN Party" }}{% endblock %}</title>
+<link rel="stylesheet" href="/static/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23242C3A'/><path d='M7 9h18v10h-5v4h-8v-4H7z' fill='%23F2C230'/></svg>">
+<script src="/static/htmx.min.js" defer></script>
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+{% if is_admin and event %}
+<header class="topbar">
+  <a class="brand" href="/">{{ event.name }}</a>
+  <nav>
+    {% for key, href, label in [("home","/","Overview"),("attendees","/attendees","Attendees"),("checkin","/checkin","Door"),("seating","/seating","Seating"),("tournaments","/tournaments","Tournaments"),("servers","/servers","Game servers")] %}
+    <a href="{{ href }}" {% if section == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+    <a href="/display" target="_blank">Big screen</a>
+  </nav>
+  <form method="post" action="/logout"><button class="linkbtn">Sign out</button></form>
+</header>
+{% endif %}
+<main class="{% block mainclass %}wrap{% endblock %}">
+{% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
