@@ -11,10 +11,11 @@ It runs fully offline. htmx and fonts are bundled, so nothing loads from a CDN a
 docker compose up -d --build
 ```
 
-Open `http://<host>:8080` and sign in with `ADMIN_PASSWORD`. Everything lives in `./data/lanparty.db`, so to move between the homelab and a venue box, copy the `data` folder.
+Open `http://<host>:1337` and sign in with `ADMIN_PASSWORD`. Everything lives in `./data/lanparty.db`, so to move between the homelab and a venue box, copy the `data` folder.
 
 | Variable | Purpose |
 |---|---|
+| `PORT` | Web UI port. Defaults to `1337`. Set `PORT=` in a `.env` file to change it without editing the compose file. |
 | `ADMIN_PASSWORD` | Organizer sign-in. |
 | `PUBLIC_HOST` | LAN IP players type into games to reach hosted servers. |
 | `BASE_URL` | Absolute URL for QR codes when behind a reverse proxy, e.g. `https://lan.example.com`. Leave blank on a flat LAN. |
@@ -47,5 +48,5 @@ Mounting `docker.sock` gives this container root-equivalent control of the host.
 
 ```bash
 pip install -r requirements.txt
-DATA_DIR=./data ADMIN_PASSWORD=dev uvicorn app.main:app --reload
+DATA_DIR=./data ADMIN_PASSWORD=dev uvicorn app.main:app --reload --port 1337
 ```
