@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="pagehead"><h1>News</h1><p class="sub">Posts appear on the homepage and the news page, and on an event's page when linked to it.</p></div>
+<section class="split">
+  <form class="panel" method="post" action="/admin/news">
+    <h2>{{ "Edit post" if editing else "New post" }}</h2>
+    {% if editing %}<input type="hidden" name="pid" value="{{ editing.id }}">{% endif %}
+    <label>Title<input name="title" required value="{{ editing.title if editing }}"></label>
+    <label>Post<textarea name="body" rows="10" placeholder="Blank lines start new paragraphs.">{{ editing.body if editing }}</textarea></label>
+    <label>About an event (optional)<select name="event_id">
+      <option value="0">No particular event</option>
+      {% for e in events %}<option value="{{ e.id }}" {% if editing and editing.event_id == e.id %}selected{% endif %}>{{ e.name }}</option>{% endfor %}
+    </select></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {% if not editing or editing.published %}checked{% endif %}> Published</label>
+    <div class="inline">
+      <button class="btn">{{ "Save" if editing else "Post" }}</button>
+      {% if editing %}<a class="btn ghost" href="/admin/news">Cancel</a>{% endif %}
+    </div>
+  </form>
+  <div class="panel">
+    <h2>All posts</h2>
+    <ul class="list">
+      {% for p in posts %}
+      <li>
+        <span><a href="/news/{{ p.id }}">{{ p.title }}</a> {% if not p.published %}<em class="tag warn">draft</em>{% endif %}
+          <span class="muted small">{{ (p.published_at or p.created_at).strftime("%b %-d") }}</span></span>
+        <span class="inline">
+          <a class="btn tiny ghost" href="/admin/news?edit={{ p.id }}">Edit</a>
+          <form method="post" action="/admin/news/{{ p.id }}/delete" data-confirm="Delete {{ p.title }}?"><button class="btn tiny danger">Delete</button></form>
+        </span>
+      </li>
+      {% else %}
+      <li class="empty">No posts yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endblock %}

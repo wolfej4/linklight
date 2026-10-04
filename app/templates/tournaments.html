@@ -12,6 +12,11 @@
       <label>Format<select name="fmt">{% for k, v in formats.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></label>
       <label>Best of<input name="best_of" type="number" min="1" max="9" step="2" value="1"></label>
     </div>
+    <div class="row2">
+      <label>Players per team<input name="team_size" type="number" min="1" max="16" value="1"></label>
+      <label class="check"><input type="checkbox" name="signups_open" value="1" checked> Ticket holders can sign up online</label>
+    </div>
+    <p class="hint">Use 1 for solo. Bigger teams sign up together with a join code.</p>
     <button class="btn">Create tournament</button>
   </form>
   <div class="panel">
@@ -19,7 +24,7 @@
     <ul class="list">
       {% for t in tournaments %}
       <li><a href="/tournaments/{{ t.id }}">{{ t.name }}</a>
-        <span class="muted">{{ formats[t.fmt] }}, {{ counts[t.id] }} players <em class="tag {{ 'on' if t.status == 'live' else 'warn' if t.status == 'setup' else '' }}">{{ {"setup":"Signing up","live":"Live","done":"Finished"}[t.status] }}</em></span></li>
+        <span class="muted">{{ formats[t.fmt] }}, {{ counts[t.id] }} {{ "teams" if t.teams else "players" }} <em class="tag {{ 'on' if t.status == 'live' else 'warn' if t.status == 'setup' else '' }}">{{ {"setup":"Signing up","live":"Live","done":"Finished"}[t.status] }}</em></span></li>
       {% else %}
       <li class="empty">Nothing yet. Create one to start taking sign-ups.</li>
       {% endfor %}

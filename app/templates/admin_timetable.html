@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="pagehead">
+  <h1>Schedule</h1>
+  <p class="sub">Shown on the public event page, and the next few items on the big screen.</p>
+</div>
+<section class="split">
+  <div class="panel">
+    <h2>{{ event.name }}</h2>
+    <ol class="timetable">
+      {% for i in items %}
+      <li{% if (i.ends_at or i.starts_at) < now %} class="done"{% endif %}>
+        <time datetime="{{ i.starts_at.isoformat() }}">{{ i.starts_at.strftime("%a %-I:%M %p") }}{% if i.ends_at %}<span> to {{ i.ends_at.strftime("%-I:%M %p") }}</span>{% endif %}</time>
+        <div><strong>{{ i.title }}</strong>{% if i.detail %}<span class="muted">{{ i.detail }}</span>{% endif %}</div>
+        <form method="post" action="/admin/timetable/{{ i.id }}/delete"><button class="linkbtn">Remove</button></form>
+      </li>
+      {% else %}
+      <li class="empty">Nothing scheduled yet.</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <form class="panel" method="post" action="/admin/timetable">
+    <h2>Add to the schedule</h2>
+    <label>What<input name="title" required placeholder="CS2 group stage"></label>
+    <div class="row2">
+      <label>Starts<input type="datetime-local" name="starts_at" required value="{{ event.starts_at if event.start }}"></label>
+      <label>Ends (optional)<input type="datetime-local" name="ends_at"></label>
+    </div>
+    <label>Details<input name="detail" placeholder="Main stage, sign up by 6"></label>
+    <button class="btn">Add</button>
+  </form>
+</section>
+{% endblock %}

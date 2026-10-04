@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block header %}
+<header class="sitebar">
+  <a class="brand" href="/">{{ site_name }}</a>
+  <nav aria-label="Site">
+    <a href="/events" {% if page == "events" %}aria-current="page"{% endif %}>Events</a>
+    <a href="/news" {% if page == "news" %}aria-current="page"{% endif %}>News</a>
+  </nav>
+  <div class="who">
+    {% if is_admin %}<a class="btn tiny ghost" href="/admin">Organizer</a>{% endif %}
+    {% if user %}
+    <a class="me" href="/account">{% if user.avatar_url %}<img src="{{ user.avatar_url }}" alt="" width="28" height="28" referrerpolicy="no-referrer">{% else %}<span class="initial" aria-hidden="true">{{ user.display[:1]|upper }}</span>{% endif %}<span>{{ user.display }}</span></a>
+    <form method="post" action="/logout"><button class="linkbtn">Sign out</button></form>
+    {% elif is_admin %}
+    <form method="post" action="/logout"><button class="linkbtn">Sign out</button></form>
+    {% else %}
+    <a class="btn tiny" href="/login?next={{ request.url.path|urlencode }}">Sign in</a>
+    {% endif %}
+  </div>
+</header>
+{% endblock %}
+{% block footer %}
+<footer class="sitefoot"><span>{{ site_name }}</span><a href="/events">Events</a><a href="/news">News</a>{% if user %}<a href="/account">Your tickets</a>{% endif %}</footer>
+{% endblock %}

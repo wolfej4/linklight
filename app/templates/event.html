@@ -1,0 +1,110 @@
+{% extends "site.html" %}
+{% from "_cards.html" import post_card %}
+{% block title %}{{ ev.name }}: {{ site_name }}{% endblock %}
+{% block content %}
+{% if not ev.published %}<p class="alert warn">This event is a draft. Only organizers can see this page until you publish it from the organizer overview.</p>{% endif %}
+<div class="pagehead">
+  <h1>{{ ev.name }}</h1>
+  <p class="sub">{{ ev|when or "Date to be announced" }}{% if ev.venue %} · {{ ev.venue }}{% endif %}</p>
+</div>
+
+<section class="eventgrid">
+  <div>
+    {% if ev.description %}<div class="prose">{{ ev.description|paras }}</div>{% endif %}
+    {% if ev.address %}<p class="muted">{{ ev.address }}</p>{% endif %}
+
+    {% if timetable %}
+    <h2 class="gap">Schedule</h2>
+    <ol class="timetable">
+      {% for i in timetable %}
+      <li{% if (i.ends_at or i.starts_at) < now %} class="done"{% endif %}>
+        <time datetime="{{ i.starts_at.isoformat() }}">{{ i.starts_at.strftime("%a %-I:%M %p") }}{% if i.ends_at %}<span> to {{ i.ends_at.strftime("%-I:%M %p") }}</span>{% endif %}</time>
+        <div><strong>{{ i.title }}</strong>{% if i.detail %}<span class="muted">{{ i.detail }}</span>{% endif %}</div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+
+    {% if tournaments %}
+    <h2 class="gap">Tournaments</h2>
+    <ul class="list">
+      {% for t in tournaments %}
+      <li><a href="/t/{{ t.id }}">{{ t.name }}</a>
+        <span class="muted">{{ t.game }}{% if t.game %}, {% endif %}{{ "teams of %d"|format(t.team_size) if t.teams else "solo" }}
+          {% if t.status == "setup" and t.signups_open %}<em class="tag on">Sign-ups open</em>{% elif t.status == "live" %}<em class="tag on">Live</em>{% elif t.status == "done" %}<em class="tag">Finished</em>{% endif %}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if posts %}
+    <h2 class="gap">Updates</h2>
+    {% for p in posts %}{{ post_card(p) }}{% endfor %}
+    {% endif %}
+  </div>
+
+  <aside>
+    <div class="panel" id="tickets">
+      <h2>Tickets</h2>
+      {% if mine %}
+      <p class="alert ok">You have a ticket. <a href="/account">See it on your account</a>.</p>
+      {% endif %}
+      {% if ev.is_past %}
+      <p class="muted">This event is over.</p>
+      {% elif not types %}
+      <p class="muted">Tickets aren't on sale yet.</p>
+      {% else %}
+      {% set paid_types = types|selectattr("price_cents")|list %}
+      <form method="post" action="/events/{{ ev.id }}/checkout" class="ticketform">
+        {% for t in types %}
+        {% set n = left[t.id] %}
+        <div class="ttype">
+          <div>
+            <strong>{{ t.name }}</strong>
+            <span class="price">{{ t.price_cents|money }}</span>
+            {% if t.description %}<span class="muted small">{{ t.description }}</span>{% endif %}
+            {% if n is not none %}<span class="muted small">{% if n == 0 %}Sold out{% elif n <= 10 %}{{ n }} left{% endif %}</span>{% endif %}
+          </div>
+          {% if n == 0 %}
+          <em class="tag bad">Sold out</em>
+          {% else %}
+          <label class="qty">Qty<input type="number" name="qty_{{ t.id }}" min="0" max="{{ [t.max_per_order, n]|min if n is not none else t.max_per_order }}" value="{{ 1 if types|length == 1 else 0 }}" inputmode="numeric"></label>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if user %}
+          {% if not mine %}
+          <label class="check"><input type="checkbox" name="for_me" value="1" checked> One of these is for me</label>
+          <p class="hint">Buying for friends too? You'll get a link for each extra ticket to send them.</p>
+          {% else %}
+          <input type="hidden" name="for_me" value="0">
+          <p class="hint">Extra tickets come with links you can send to friends.</p>
+          {% endif %}
+          {% if paid_types %}
+            {% if providers %}
+            <fieldset class="paywith">
+              <legend>Pay with</legend>
+              {% for p in providers %}
+              <label class="check"><input type="radio" name="provider" value="{{ p }}" {% if loop.first %}checked{% endif %}> {{ provider_names[p] }}</label>
+              {% endfor %}
+            </fieldset>
+            {% else %}
+            <p class="alert warn">Online payment isn't set up yet. Ask an organizer how to pay.</p>
+            {% endif %}
+          {% endif %}
+          <button class="btn" {% if paid_types and not providers %}disabled{% endif %}>{{ "Check out" if paid_types else "Get tickets" }}</button>
+          <p class="hint">Paid tickets are held for 30 minutes while you check out.</p>
+        {% else %}
+          <a class="btn" href="/login?next=/events/{{ ev.id }}%23tickets">Sign in to get tickets</a>
+        {% endif %}
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <h2>Who's going</h2>
+      <p class="muted">{{ going }} {{ "person" if going == 1 else "people" }} so far.</p>
+      {% if handles %}<p class="handles">{% for h in handles %}<span>{{ h }}</span>{% endfor %}</p>{% endif %}
+    </div>
+  </aside>
+</section>
+{% endblock %}

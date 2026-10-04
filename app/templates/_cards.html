@@ -1,0 +1,22 @@
+{% macro event_card(e, big=False) %}
+<a class="evcard{% if big %} big{% endif %}{% if e.is_past %} past{% endif %}" href="/events/{{ e.id }}">
+  {% if e.start %}
+  <span class="evdate" aria-hidden="true"><b>{{ e.start.strftime("%-d") }}</b>{{ e.start.strftime("%b") }}</span>
+  {% else %}
+  <span class="evdate tba" aria-hidden="true"><b>?</b>TBA</span>
+  {% endif %}
+  <span class="evbody">
+    <strong>{{ e.name }}</strong>
+    <span class="muted">{{ e|when or "Date to be announced" }}{% if e.venue %} · {{ e.venue }}{% endif %}</span>
+    {% if not e.published %}<em class="tag warn">Draft, only organizers see this</em>{% endif %}
+  </span>
+</a>
+{% endmacro %}
+
+{% macro post_card(p) %}
+<article class="postcard">
+  <h3><a href="/news/{{ p.id }}">{{ p.title }}</a></h3>
+  <p class="muted small">{{ (p.published_at or p.created_at).strftime("%b %-d, %Y") }}</p>
+  <div class="excerpt">{{ (p.body[:280] ~ ("…" if p.body|length > 280 else ""))|paras }}</div>
+</article>
+{% endmacro %}

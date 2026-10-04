@@ -12,7 +12,7 @@
       <form method="post" action="/servers/{{ r.g.id }}/stop"><button class="btn tiny ghost">Stop</button></form>
     {% endif %}
     <button class="btn tiny ghost" hx-get="/servers/{{ r.g.id }}/logs" hx-target="#logs">Logs</button>
-    <form method="post" action="/servers/{{ r.g.id }}/delete" onsubmit="return confirm('Remove {{ r.g.name }}? Its world data is kept.')"><button class="btn tiny danger">Remove</button></form>
+    <form method="post" action="/servers/{{ r.g.id }}/delete" data-confirm="Remove {{ r.g.name }}? Its world data is kept."><button class="btn tiny danger">Remove</button></form>
   </td>
 </tr>
 {% else %}

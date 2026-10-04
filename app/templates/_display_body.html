@@ -3,6 +3,13 @@
   <div class="tvmeta"><span class="clock">{{ now.strftime("%-I:%M") }}</span><span>{{ here }} of {{ total }} here</span></div>
 </header>
 {% if event.announcement %}<p class="announce">{{ event.announcement }}</p>{% endif %}
+{% if schedule %}
+<div class="tvsched">
+  {% for i in schedule %}
+  <div class="{{ 'now' if i.starts_at <= now }}"><span>{{ "Now" if i.starts_at <= now else i.starts_at.strftime("%-I:%M %p") }}</span><b>{{ i.title }}</b>{% if i.detail %}<small>{{ i.detail }}</small>{% endif %}</div>
+  {% endfor %}
+</div>
+{% endif %}
 <div class="tvgrid">
   <section>
     <h2>Up next</h2>

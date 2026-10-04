@@ -1,0 +1,63 @@
+{% extends "site.html" %}
+{% block title %}Order #{{ order.id }}: {{ site_name }}{% endblock %}
+{% block content %}
+{% set uid = user.id if user else 0 %}
+<div class="pagehead">
+  <h1>Order #{{ order.id }}</h1>
+  <p class="sub"><a href="/events/{{ ev.id }}">{{ ev.name }}</a> · {{ order.created_at.strftime("%b %-d, %Y") }}</p>
+</div>
+
+{% if order.status == "pending" %}
+<p class="alert warn">We're waiting for the payment to come through. This page will show your tickets as soon as it does. <a href="/orders/{{ order.id }}">Refresh</a></p>
+{% elif order.status == "expired" %}
+<p class="alert">This checkout timed out, so you weren't charged. <a href="/events/{{ ev.id }}#tickets">Start again</a></p>
+{% elif order.status in ("cancelled", "refunded") %}
+<p class="alert">This order was {{ order.status }}.</p>
+{% endif %}
+
+<section class="split">
+  <div class="panel">
+    <h2>Summary</h2>
+    <table class="grid compact">
+      <tbody>
+      {% for tt, price, n in lines %}
+      <tr><td>{{ n }} × {{ tt.name if tt else "Ticket" }}</td><td class="num">{{ (price * n)|money(order.currency) }}</td></tr>
+      {% endfor %}
+      <tr><td><b>Total</b></td><td class="num"><b>{{ order.total_cents|money(order.currency) }}</b></td></tr>
+      </tbody>
+    </table>
+    {% if order.status == "paid" and order.provider not in ("free", "") %}<p class="muted small">Paid with {{ "PayPal" if order.provider == "paypal" else "card" }} on {{ order.paid_at.strftime("%b %-d at %-I:%M %p") }}.</p>{% endif %}
+  </div>
+
+  {% if order.status == "paid" %}
+  <div class="panel">
+    <h2>Tickets</h2>
+    <ul class="list tix">
+      {% for t in tix if t.status == "active" %}
+      <li>
+        <span><b>{{ types[t.ticket_type_id].name if types[t.ticket_type_id] else "Ticket" }}</b>
+          {% if t.holder_id %}<span class="muted">{{ "Yours" if t.holder_id == uid else "Claimed by " ~ holders[t.id].display }}</span>{% else %}<em class="tag warn">Not claimed yet</em>{% endif %}</span>
+        {% if t.holder_id %}
+          {% if t.holder_id != uid %}
+          <form method="post" action="/tickets/{{ t.id }}/release" data-confirm="Take this ticket back? {{ holders[t.id].display }} will lose their spot."><button class="linkbtn">Take back</button></form>
+          {% endif %}
+        {% else %}
+        <div class="gift">
+          <label>Link to send<input readonly value="{{ base }}/claim/{{ t.claim_token }}" onclick="this.select()"></label>
+          {% if can_email %}
+          <form method="post" action="/tickets/{{ t.id }}/send" class="inline-form">
+            <input type="email" name="email" required placeholder="friend@example.com" aria-label="Friend's email">
+            <button class="btn tiny ghost">Email it</button>
+          </form>
+          {% endif %}
+          <form method="post" action="/tickets/{{ t.id }}/take"><button class="linkbtn">Keep it for myself</button></form>
+        </div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="hint">Anyone with a ticket link can claim it once, after they sign in. Each person can hold one ticket per event.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

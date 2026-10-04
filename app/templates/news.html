@@ -1,0 +1,8 @@
+{% extends "site.html" %}
+{% from "_cards.html" import post_card %}
+{% block title %}News: {{ site_name }}{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>News</h1></div>
+{% for p in posts %}{{ post_card(p) }}{% else %}<p class="empty">No news yet.</p>{% endfor %}
+{% endblock %}

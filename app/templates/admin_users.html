@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="pagehead">
+  <h1>Users</h1>
+  <p class="sub">Everyone who has signed in. Organizers can use every page in this console.</p>
+</div>
+<form method="get" class="filterbar">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search by name, gamertag or email" aria-label="Search users">
+  <button class="btn ghost">Search</button>
+</form>
+<div class="scroll">
+<table class="grid">
+  <thead><tr><th>User</th><th>Email</th><th>Signs in with</th><th>Joined</th><th>Role</th><th></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+  <tr>
+    <td><strong>{{ u.display }}</strong>{% if u.handle and u.name %}<div class="muted small">{{ u.name }}</div>{% endif %}</td>
+    <td>{{ u.email or "" }}</td>
+    <td>{{ (idents.get(u.id, []) + (["email"] if u.email else []))|map("capitalize")|join(", ") }}</td>
+    <td>{{ u.created_at.strftime("%b %-d, %Y") }}</td>
+    <td>{% if u.is_admin %}<em class="tag on">Organizer</em>{% endif %}</td>
+    <td><div class="rowactions">
+      {% if not (me and me.id == u.id) %}
+      <form method="post" action="/admin/users/{{ u.id }}/admin" data-confirm="{{ ('Remove organizer access from ' if u.is_admin else 'Make ') ~ u.display ~ ('?' if u.is_admin else ' an organizer? They will be able to change everything here.') }}">
+        <button class="btn tiny {{ 'danger' if u.is_admin else 'ghost' }}">{{ "Remove organizer" if u.is_admin else "Make organizer" }}</button>
+      </form>
+      {% endif %}
+    </div></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="empty">Nobody has signed in yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="hint">Tip: put your own email in <code>ADMIN_EMAILS</code> so your account is an organizer as soon as you sign in.</p>
+{% endblock %}

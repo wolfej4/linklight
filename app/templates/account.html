@@ -1,0 +1,89 @@
+{% extends "site.html" %}
+{% block title %}Your account: {{ site_name }}{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>{{ me.display }}</h1>{% if me.is_admin %}<p class="sub"><em class="tag on">Organizer</em></p>{% endif %}</div>
+
+<h2>Your tickets</h2>
+{% for h in holdings %}
+<div class="panel ticketcard">
+  <div>
+    <strong><a href="/events/{{ h.event.id }}">{{ h.event.name }}</a></strong>
+    <span class="muted">{{ h.event|when or "Date to be announced" }}{% if h.event.venue %} · {{ h.event.venue }}{% endif %}</span>
+    <span class="muted small">{{ h.type.name if h.type else "Ticket" }}{% if h.attendee and h.attendee.checked_in_at %} · checked in {{ h.attendee.checked_in_at|dt }}{% endif %}</span>
+  </div>
+  <div class="inline">
+    {% if h.attendee %}<a class="btn" href="/p/{{ h.attendee.token }}">Seat, matches and QR</a>{% endif %}
+    {% if not h.event.is_past and not (h.attendee and h.attendee.checked_in_at) %}
+    <form method="post" action="/tickets/{{ h.ticket.id }}/release" data-confirm="Give up this ticket? The person who bought it can then pass it to someone else."><button class="linkbtn">Give up ticket</button></form>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<p class="empty">No tickets yet. <a href="/events">Find an event</a>.</p>
+{% endfor %}
+
+{% if orders %}
+<h2 class="gap">Orders</h2>
+<div class="scroll">
+<table class="grid">
+  <thead><tr><th>Order</th><th>Event</th><th class="num">Tickets</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for o in orders %}
+  <tr>
+    <td>#{{ o.order.id }}<div class="muted small">{{ o.order.created_at.strftime("%b %-d, %Y") }}</div></td>
+    <td>{{ o.event.name if o.event else "Deleted event" }}</td>
+    <td class="num">{{ o.count }}</td>
+    <td class="num">{{ o.order.total_cents|money(o.order.currency) }}</td>
+    <td><em class="tag {{ 'on' if o.order.status == 'paid' else 'warn' if o.order.status == 'pending' else '' }}">{{ o.order.status|capitalize }}</em>
+      {% if o.unclaimed %}<span class="muted small">{{ o.unclaimed }} to give out</span>{% endif %}</td>
+    <td><div class="rowactions"><a href="/orders/{{ o.order.id }}">{{ "Send tickets" if o.unclaimed else "View" }}</a></div></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+<section class="split gap">
+  <form class="panel" method="post" action="/account">
+    <h2>Profile</h2>
+    <p class="hint">Organizers and other players see your gamertag. Changes carry over to events you have tickets for.</p>
+    <div class="row2">
+      <label>Name<input name="name" value="{{ me.name }}" maxlength="80" autocomplete="name"></label>
+      <label>Gamertag<input name="handle" value="{{ me.handle }}" maxlength="40"></label>
+    </div>
+    <div class="row2">
+      <label>What you're bringing<input name="gear" value="{{ me.gear }}" maxlength="200" placeholder="Tower + 27in monitor"></label>
+      <label>Estimated watts<input name="watts" type="number" min="0" max="5000" step="25" value="{{ me.watts if me.watts is not none }}" placeholder="{{ default_watts }}"></label>
+    </div>
+    <p class="hint">Watts help organizers spread rigs across circuits so breakers don't trip.</p>
+    <button class="btn">Save profile</button>
+  </form>
+
+  <div class="panel">
+    <h2>Ways to sign in</h2>
+    <ul class="list">
+      {% for i in identities %}
+      <li><span><b>{{ names.get(i.provider, i.provider) }}</b> <span class="muted">{{ i.label }}</span></span>
+        <form method="post" action="/account/unlink/{{ i.id }}"><button class="linkbtn">Unlink</button></form></li>
+      {% endfor %}
+      {% if me.email %}
+      <li><span><b>Email</b> <span class="muted">{{ me.email }}</span></span>
+        <form method="post" action="/account/email/remove"><button class="linkbtn">Remove</button></form></li>
+      {% endif %}
+    </ul>
+    {% if linkable %}
+    <div class="inline">
+      {% for p in linkable %}<a class="btn tiny ghost" href="/auth/{{ p }}/start?next=/account">Link {{ names[p] }}</a>{% endfor %}
+    </div>
+    {% endif %}
+    {% if email_login %}
+    <form method="post" action="/account/email" class="inline-form gap">
+      <input type="email" name="email" required placeholder="{{ 'Change email' if me.email else 'Add an email' }}" aria-label="Email address">
+      <button class="btn ghost">Send confirmation</button>
+    </form>
+    <p class="hint">Receipts and gifted tickets go to this address.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

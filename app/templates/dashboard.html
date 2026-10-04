@@ -2,10 +2,13 @@
 {% block content %}
 <div class="pagehead">
   <h1>{{ event.name }}</h1>
-  <p class="sub">{% if event.starts_at %}{{ event.starts_at }}{% endif %}{% if event.starts_at and event.venue %}, {% endif %}{{ event.venue }}</p>
+  <p class="sub">{{ event|when }}{% if event.starts_at and event.venue %}, {% endif %}{{ event.venue }}
+    {% if event.published %}<em class="tag on">Published</em>{% else %}<em class="tag warn">Draft</em>{% endif %}</p>
+  <div class="actions"><a class="btn ghost" href="/events/{{ event.id }}">Public page</a></div>
 </div>
 
 <section class="stats">
+  <a href="/admin/tickets" class="stat"><strong>{{ stats.revenue|money(none, false) }}</strong>from {{ stats.orders }} paid orders</a>
   <a href="/attendees?filter=here" class="stat"><strong>{{ stats.checked }}<span>/{{ stats.total }}</span></strong>checked in</a>
   <a href="/attendees?filter=unpaid" class="stat"><strong>{{ stats.total - stats.paid }}</strong>still owe</a>
   <a href="/seating" class="stat"><strong>{{ stats.open }}</strong>open seats of {{ stats.seats }}</a>
@@ -18,33 +21,41 @@
 {% endfor %}
 
 <section class="split">
-  <form class="panel" method="post" action="/event">
+  <form class="panel" method="post" action="/admin/event">
     <h2>Event details</h2>
     <label>Name<input name="name" value="{{ event.name }}" required></label>
     <div class="row2">
-      <label>When<input name="starts_at" value="{{ event.starts_at }}" placeholder="Sat Oct 17, 2 PM"></label>
-      <label>Where<input name="venue" value="{{ event.venue }}" placeholder="The Wolfden"></label>
+      <label>Starts<input type="datetime-local" name="starts_at" value="{{ event.starts_at if event.start }}"></label>
+      <label>Ends<input type="datetime-local" name="ends_at" value="{{ event.ends_at if event.end }}"></label>
     </div>
-    <label>Announcement on the big screen<textarea name="announcement" rows="3" placeholder="Pizza lands at 7. CS2 finals at 9.">{{ event.announcement }}</textarea></label>
+    {% if event.starts_at and not event.start %}<p class="hint">Previously entered as "{{ event.starts_at }}". Pick a date so the event shows up as upcoming or past.</p>{% endif %}
+    <div class="row2">
+      <label>Venue<input name="venue" value="{{ event.venue }}" placeholder="The Wolfden"></label>
+      <label>Address<input name="address" value="{{ event.address }}" placeholder="Shown on the public page"></label>
+    </div>
+    <label>Description for the public page<textarea name="description" rows="5" placeholder="What to bring, house rules, food, parking. Blank lines start new paragraphs.">{{ event.description }}</textarea></label>
+    <label>Announcement on the big screen<textarea name="announcement" rows="2" placeholder="Pizza lands at 7. CS2 finals at 9.">{{ event.announcement }}</textarea></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {% if event.published %}checked{% endif %}> Show this event on the public site</label>
     <button class="btn">Save details</button>
   </form>
 
   <div class="panel">
     <h2>Events</h2>
+    <p class="hint">The current event is the one these pages, the door and the big screen work on.</p>
     <ul class="list">
       {% for e in events %}
       <li>
-        <span>{{ e.name }}{% if e.active %} <em class="tag on">current</em>{% endif %}</span>
+        <span>{{ e.name }}{% if e.active %} <em class="tag on">current</em>{% endif %}{% if not e.published %} <em class="tag">draft</em>{% endif %}</span>
         {% if not e.active %}
         <span class="inline">
-          <form method="post" action="/events/{{ e.id }}/activate"><button class="btn tiny ghost">Switch to</button></form>
-          <form method="post" action="/events/{{ e.id }}/delete" onsubmit="return confirm('Delete {{ e.name }} and everything in it?')"><button class="btn tiny danger">Delete</button></form>
+          <form method="post" action="/admin/events/{{ e.id }}/activate"><button class="btn tiny ghost">Switch to</button></form>
+          <form method="post" action="/admin/events/{{ e.id }}/delete" data-confirm="Delete {{ e.name }} and everything in it?"><button class="btn tiny danger">Delete</button></form>
         </span>
         {% endif %}
       </li>
       {% endfor %}
     </ul>
-    <form method="post" action="/events" class="inline-form">
+    <form method="post" action="/admin/events" class="inline-form">
       <input name="name" placeholder="New event name" required>
       <button class="btn ghost">Start new event</button>
     </form>

@@ -1,0 +1,46 @@
+{% extends "site.html" %}
+{% from "_cards.html" import event_card, post_card %}
+{% block title %}{{ site_name }}{% endblock %}
+{% block content %}
+{% if featured %}
+<section class="hero">
+  <p class="eyebrow">Next up</p>
+  <h1>{{ featured.name }}</h1>
+  <p class="herowhen">{{ featured|when or "Date to be announced" }}{% if featured.venue %}<span>{{ featured.venue }}</span>{% endif %}</p>
+  {% if featured.description %}<div class="herotext">{{ (featured.description[:360] ~ ("…" if featured.description|length > 360 else ""))|paras }}</div>{% endif %}
+  <div class="inline">
+    <a class="btn" href="/events/{{ featured.id }}#tickets">Get tickets</a>
+    <a class="btn ghost" href="/events/{{ featured.id }}">Event details</a>
+  </div>
+</section>
+{% else %}
+<section class="hero">
+  <h1>{{ site_name }}</h1>
+  <p class="herowhen">No events are scheduled right now. Check back soon.</p>
+</section>
+{% endif %}
+
+<section class="split">
+  <div>
+    <h2>Upcoming events</h2>
+    {% for e in upcoming %}{{ event_card(e) }}{% else %}<p class="empty">Nothing on the calendar yet.</p>{% endfor %}
+    {% if past %}
+    <h2 class="gap">Past events</h2>
+    {% for e in past %}{{ event_card(e) }}{% endfor %}
+    {% if past|length >= 12 %}<p><a href="/events">See every event</a></p>{% endif %}
+    {% endif %}
+  </div>
+  <div>
+    <h2>News</h2>
+    {% for p in posts %}{{ post_card(p) }}{% else %}<p class="empty">No news yet.</p>{% endfor %}
+    {% if posts %}<p><a href="/news">All news</a></p>{% endif %}
+    {% if not user and not is_admin %}
+    <div class="panel">
+      <h2>Have an account?</h2>
+      <p class="muted">Sign in with Steam, Discord, Google, Apple or your email to buy tickets, sign up for tournaments and see your seat.</p>
+      <a class="btn" href="/login">Sign in</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

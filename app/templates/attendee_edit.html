@@ -19,7 +19,7 @@
     <a class="btn ghost" href="/attendees">Cancel</a>
   </div>
 </form>
-<form method="post" action="/attendees/{{ a.id }}/delete" onsubmit="return confirm('Remove {{ a.name }}?')">
+<form method="post" action="/attendees/{{ a.id }}/delete" data-confirm="Remove {{ a.name }}?">
   <button class="btn danger">Remove attendee</button>
 </form>
 {% endblock %}

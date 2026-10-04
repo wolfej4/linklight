@@ -1,0 +1,10 @@
+{% extends "site.html" %}
+{% block title %}Not found{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="panel">
+  <h1>We couldn't find that {{ what }}</h1>
+  <p class="muted">{{ hint or "It may have been removed, or the link is wrong." }}</p>
+  <a class="btn ghost" href="/">Back to the homepage</a>
+</div>
+{% endblock %}

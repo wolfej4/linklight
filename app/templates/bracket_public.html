@@ -1,8 +1,62 @@
-{% extends "base.html" %}
+{% extends "site.html" %}
 {% block title %}{{ t.name }}{% endblock %}
 {% block mainclass %}wide{% endblock %}
 {% block content %}
-<div class="pagehead"><h1>{{ t.name }}</h1><p class="sub">{{ t.game }}{% if t.game %}, {% endif %}{{ formats[t.fmt] }}. Updates on its own.</p></div>
+<div class="pagehead">
+  <h1>{{ t.name }}</h1>
+  <p class="sub">{{ t.game }}{% if t.game %}, {% endif %}{{ formats[t.fmt] }}{% if t.teams %}, teams of {{ t.team_size }}{% endif %} · <a href="/events/{{ ev.id }}">{{ ev.name }}</a>{% if t.status != "setup" %}. Updates on its own.{% endif %}</p>
+</div>
+
+{% if t.status == "setup" %}
+<section class="split">
+  <div class="panel">
+    <h2>{{ "Teams" if t.teams else "Players" }} signed up ({{ entrants|length }})</h2>
+    <ul class="list">
+      {% for e in entrants %}
+      {% set side = people.get(e.team_id if t.teams else e.attendee_id) %}
+      <li><span>{{ side.display if side else "Removed" }}{% if t.teams %} <span class="muted small">{{ rosters.get(e.team_id, [])|map(attribute="display")|join(", ") }} ({{ rosters.get(e.team_id, [])|length }}/{{ t.team_size }})</span>{% endif %}</span></li>
+      {% else %}
+      <li class="empty">Nobody yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h2>Sign up</h2>
+    {% if not t.signups_open %}
+    <p class="muted">Organizers are handling sign-ups for this one. Find one at the event.</p>
+    {% elif not user %}
+    <a class="btn" href="/login?next=/t/{{ t.id }}">Sign in to sign up</a>
+    {% elif not me %}
+    <p class="muted">You need a ticket for {{ ev.name }} to sign up.</p>
+    <a class="btn" href="/events/{{ ev.id }}#tickets">Get a ticket</a>
+    {% elif t.teams %}
+      {% if my_team %}
+      <p>You're on <strong>{{ my_team.name }}</strong>{% if my_team.captain_id == me.id %}, and you're the captain{% endif %}.</p>
+      <p>Join code: <code class="joincode">{{ my_team.join_code }}</code></p>
+      <p class="hint">Teammates sign in, open this page and enter the code. Teams can have up to {{ t.team_size }} players.</p>
+      <form method="post" action="/t/{{ t.id }}/leave" data-confirm="Leave {{ my_team.name }}?"><button class="btn ghost">Leave team</button></form>
+      {% else %}
+      <form method="post" action="/t/{{ t.id }}/teams/join" class="inline-form">
+        <input name="code" required placeholder="Join code" aria-label="Team join code" autocomplete="off">
+        <button class="btn">Join team</button>
+      </form>
+      <p class="or"><span>or</span></p>
+      <form method="post" action="/t/{{ t.id }}/teams" class="inline-form">
+        <input name="name" required maxlength="40" placeholder="Team name" aria-label="Team name">
+        <button class="btn ghost">Create a team</button>
+      </form>
+      {% endif %}
+    {% elif entered %}
+    <p>You're signed up as <strong>{{ me.display }}</strong>.</p>
+    <form method="post" action="/t/{{ t.id }}/leave"><button class="btn ghost">Withdraw</button></form>
+    {% else %}
+    <form method="post" action="/t/{{ t.id }}/join"><button class="btn">Sign up as {{ me.display }}</button></form>
+    {% endif %}
+  </div>
+</section>
+{% else %}
 <div hx-get="/t/{{ t.id }}" hx-trigger="every 15s" hx-select="#bracketwrap" hx-target="#bracketwrap" hx-swap="outerHTML"></div>
-{% if t.status == "setup" %}<p class="empty">The bracket hasn't started yet.</p>{% else %}{% set admin = False %}{% include "_bracket.html" %}{% endif %}
+{% set admin = False %}{% include "_bracket.html" %}
+{% endif %}
 {% endblock %}

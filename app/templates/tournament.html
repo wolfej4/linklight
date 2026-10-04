@@ -3,18 +3,68 @@
 {% block content %}
 <div class="pagehead">
   <h1>{{ t.name }}</h1>
-  <p class="sub">{{ t.game }}{% if t.game %}, {% endif %}{{ formats[t.fmt] }}{% if t.best_of > 1 %}, best of {{ t.best_of }}{% endif %}</p>
+  <p class="sub">{{ t.game }}{% if t.game %}, {% endif %}{{ formats[t.fmt] }}{% if t.teams %}, teams of {{ t.team_size }}{% endif %}{% if t.best_of > 1 %}, best of {{ t.best_of }}{% endif %}</p>
   <div class="actions">
     <a class="btn ghost" href="/t/{{ t.id }}" target="_blank">Public bracket</a>
     {% if t.status != "setup" %}
-    <form method="post" action="/tournaments/{{ t.id }}/unstart" onsubmit="return confirm('Wipe all results and go back to sign-ups?')"><button class="btn ghost">Back to sign-ups</button></form>
+    <form method="post" action="/tournaments/{{ t.id }}/unstart" data-confirm="Wipe all results and go back to sign-ups?"><button class="btn ghost">Back to sign-ups</button></form>
     {% endif %}
-    <form method="post" action="/tournaments/{{ t.id }}/delete" onsubmit="return confirm('Delete {{ t.name }}?')"><button class="btn danger">Delete</button></form>
+    <form method="post" action="/tournaments/{{ t.id }}/delete" data-confirm="Delete {{ t.name }}?"><button class="btn danger">Delete</button></form>
   </div>
 </div>
 
 {% if t.status == "setup" %}
+<div class="inline gapb">
+  <span class="muted">Online sign-ups are {{ "open" if t.signups_open else "closed" }}{% if t.signups_open %}: ticket holders can {{ "make and join teams" if t.teams else "sign themselves up" }} on the public page{% endif %}.</span>
+  <form method="post" action="/tournaments/{{ t.id }}/signups"><button class="btn tiny ghost">{{ "Close" if t.signups_open else "Open" }} sign-ups</button></form>
+</div>
 <section class="split">
+  {% if t.teams %}
+  <div class="panel">
+    <h2>Teams ({{ entrants|length }})</h2>
+    <ol class="list seeds">
+      {% for e in entrants %}
+      {% set team = people.get(e.team_id) %}
+      <li>
+        <span><b class="seed">{{ loop.index }}</b>{{ team.name if team else "Removed team" }}
+          <span class="muted small">({{ rosters.get(e.team_id, [])|length }}/{{ t.team_size }}){% if team %} code {{ team.join_code }}{% endif %}</span></span>
+        <form method="post" action="/tournaments/{{ t.id }}/entrants/{{ e.id }}/delete" data-confirm="Remove {{ team.name if team else 'this team' }}?"><button class="linkbtn">Remove team</button></form>
+        {% if team %}
+        <div class="roster">
+          {% for m in rosters.get(e.team_id, []) %}
+          <span class="member">{{ m.display }}{% if m.id == team.captain_id %} <em class="tag">captain</em>{% endif %}
+            <form method="post" action="/tournaments/{{ t.id }}/teams/{{ team.id }}/members/{{ m.id }}/delete"><button class="linkbtn" aria-label="Remove {{ m.display }}">×</button></form></span>
+          {% endfor %}
+          {% if rosters.get(e.team_id, [])|length < t.team_size and pool %}
+          <form method="post" action="/tournaments/{{ t.id }}/teams/{{ team.id }}/members" class="inline-form">
+            <select name="attendee_id" aria-label="Add a player to {{ team.name }}">{% for a in pool %}<option value="{{ a.id }}">{{ a.display }}</option>{% endfor %}</select>
+            <button class="btn tiny ghost">Add</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endif %}
+      </li>
+      {% else %}
+      <li class="empty">No teams yet.</li>
+      {% endfor %}
+    </ol>
+    <div class="inline">
+      <form method="post" action="/tournaments/{{ t.id }}/shuffle"><button class="btn ghost" {% if entrants|length < 2 %}disabled{% endif %}>Shuffle seeds</button></form>
+      <form method="post" action="/tournaments/{{ t.id }}/start"><button class="btn" {% if entrants|length < 2 %}disabled{% endif %}>Start bracket</button></form>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Add a team</h2>
+    <form method="post" action="/tournaments/{{ t.id }}/teams">
+      <label>Team name<input name="name" required maxlength="40"></label>
+      <label>Captain<select name="captain_id" required>
+        {% for a in pool %}<option value="{{ a.id }}">{{ a.name }}{% if a.handle %} ({{ a.handle }}){% endif %}</option>{% endfor %}
+      </select></label>
+      <button class="btn ghost" {% if not pool %}disabled{% endif %}>Add team</button>
+    </form>
+    <p class="hint">Teams of up to {{ t.team_size }}. Players can also join a team with its code on the public page.</p>
+  </div>
+  {% else %}
   <div class="panel">
     <h2>Players ({{ entrants|length }})</h2>
     <ol class="list seeds">
@@ -41,6 +91,7 @@
     </form>
     <p class="hint">Seeds follow the order players were added. Seed 1 meets the lowest seed first, and top seeds get byes when the count isn't a power of two.</p>
   </div>
+  {% endif %}
 </section>
 {% else %}
 {% set admin = True %}
