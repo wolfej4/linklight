@@ -1,8 +1,0 @@
-{% extends "base.html" %}
-{% block mainclass %}narrow{% endblock %}
-{% block content %}
-<div class="pagehead"><h1>Door check-in</h1><p class="sub">Type a name or gamertag, or scan a badge with your phone.</p></div>
-<input class="bigsearch" type="search" name="q" autofocus autocomplete="off" placeholder="Start typing a name"
-       aria-label="Find attendee" hx-get="/checkin/search" hx-trigger="input changed delay:150ms, search" hx-target="#results">
-<div id="results"></div>
-{% endblock %}

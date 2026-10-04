@@ -1,8 +1,0 @@
-{% extends "base.html" %}
-{% block title %}{{ t.name }}{% endblock %}
-{% block mainclass %}wide{% endblock %}
-{% block content %}
-<div class="pagehead"><h1>{{ t.name }}</h1><p class="sub">{{ t.game }}{% if t.game %}, {% endif %}{{ formats[t.fmt] }}. Updates on its own.</p></div>
-<div hx-get="/t/{{ t.id }}" hx-trigger="every 15s" hx-select="#bracketwrap" hx-target="#bracketwrap" hx-swap="outerHTML"></div>
-{% if t.status == "setup" %}<p class="empty">The bracket hasn't started yet.</p>{% else %}{% set admin = False %}{% include "_bracket.html" %}{% endif %}
-{% endblock %}

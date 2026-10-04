@@ -1,8 +1,0 @@
-fastapi==0.141.1
-uvicorn[standard]==0.54.0
-sqlmodel==0.0.47
-jinja2==3.1.6
-python-multipart==0.0.32
-itsdangerous==2.2.0
-docker==7.2.0
-qrcode==8.2
