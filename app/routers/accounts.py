@@ -47,7 +47,7 @@ def _redirect_uri(request: Request, provider: str) -> str:
 def login_page(request: Request, next: str = "/"):
     if current_user(request):
         return RedirectResponse(safe_next(next, "/account"), status_code=303)
-    return render(request, "login.html", next=safe_next(next), providers=oauth.enabled(), names=oauth.PROVIDERS,
+    return render(request, "login.html", next=safe_next(next), providers=list(oauth.PROVIDERS), enabled=oauth.enabled(), names=oauth.PROVIDERS,
                   email_login=mailer.enabled(), event=None)
 
 
@@ -57,7 +57,7 @@ def password_login(request: Request, password: str = Form(...), next: str = Form
     if hmac.compare_digest(password.encode(), ADMIN_PASSWORD.encode()):
         request.session["admin"] = True
         return RedirectResponse(safe_next(next, "/admin"), status_code=303)
-    return render(request, "login.html", next=safe_next(next), providers=oauth.enabled(), names=oauth.PROVIDERS,
+    return render(request, "login.html", next=safe_next(next), providers=list(oauth.PROVIDERS), enabled=oauth.enabled(), names=oauth.PROVIDERS,
                   email_login=mailer.enabled(), event=None, error="That password didn't match. Try again.")
 
 

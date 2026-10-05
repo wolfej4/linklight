@@ -221,3 +221,22 @@ def test_names_with_quotes_cannot_break_out_of_confirm_dialogs(admin, db, event)
     html = admin.get(f"/attendees/{a.id}").text
     assert "onsubmit" not in html
     assert 'data-confirm="Remove x&#39;);alert(1);//?"' in html
+
+
+def test_login_page_lists_every_option(monkeypatch):
+    from app import mailer
+    monkeypatch.setattr(oauth, "enabled", lambda: ["steam"])
+    monkeypatch.setattr(mailer, "enabled", lambda: False)
+    with client() as c:
+        html = c.get("/login").text
+    for name in ("Steam", "Discord", "Google", "Apple", "email"):
+        assert f"Login with {name}" in html
+    assert 'href="/auth/steam/start' in html
+    assert 'href="/auth/discord/start' not in html  # not configured, so shown but disabled
+    assert "Email login isn't set up yet" in html
+    monkeypatch.setattr(oauth, "enabled", lambda: list(oauth.PROVIDERS))
+    monkeypatch.setattr(mailer, "enabled", lambda: True)
+    with client() as c:
+        html = c.get("/login").text
+    assert all(f'href="/auth/{p}/start' in html for p in oauth.PROVIDERS)
+    assert "Not set up yet" not in html

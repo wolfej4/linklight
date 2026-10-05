@@ -5,23 +5,23 @@
 <div class="panel login">
   <h1>Sign in</h1>
   <p class="muted">New here? Signing in creates your account.</p>
-  {% if providers %}
   <div class="providers">
     {% for p in providers %}
-    <a class="btn provider {{ p }}" href="/auth/{{ p }}/start?next={{ next|urlencode }}">Continue with {{ names[p] }}</a>
+    {% if p in enabled %}
+    <a class="btn provider {{ p }}" href="/auth/{{ p }}/start?next={{ next|urlencode }}">Login with {{ names[p] }}</a>
+    {% else %}
+    <span class="btn provider {{ p }} off" aria-disabled="true" title="Not set up yet">Login with {{ names[p] }}<small>Not set up yet</small></span>
+    {% endif %}
     {% endfor %}
   </div>
-  {% endif %}
-  {% if email_login %}
-  {% if providers %}<p class="or"><span>or use your email</span></p>{% endif %}
-  <form method="post" action="/login/email">
+  <form method="post" action="/login/email" class="emaillogin">
     <input type="hidden" name="next" value="{{ next }}">
-    <label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
-    <button class="btn ghost wide">Email me a sign-in link</button>
+    <label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com" {% if not email_login %}disabled{% endif %}></label>
+    <button class="btn ghost wide" {% if not email_login %}disabled title="Not set up yet"{% endif %}>Login with email</button>
+    <p class="hint">{% if email_login %}We'll email you a link that signs you in.{% else %}Email login isn't set up yet.{% endif %}</p>
   </form>
-  {% endif %}
-  {% if not providers and not email_login %}
-  <p class="alert warn">No sign-in options are set up yet. Organizers can use the password below.</p>
+  {% if is_admin and (enabled|length < providers|length or not email_login) %}
+  <p class="alert warn">Organizers only: the greyed-out options need their keys in <code>.env</code> (see <code>.env.example</code>), then a restart.</p>
   {% endif %}
   <details class="organizer"{% if error and "password" in error %} open{% endif %}>
     <summary>Organizer password</summary>
